@@ -45,7 +45,10 @@ public class AnchorCreator : MonoBehaviour
             var anchor = m_AnchorManager.AttachAnchor(hitPlane, hitPose);
             
             if(!hoop.activeSelf)
+            {
                 hoop.SetActive(true);
+                Manager.Instance.StartGame();
+            }
 
             hoop.transform.position = anchor.transform.position;
 
