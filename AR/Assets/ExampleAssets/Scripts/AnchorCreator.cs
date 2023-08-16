@@ -20,9 +20,6 @@ public class AnchorCreator : MonoBehaviour
 
     [SerializeField]
     GameObject hoop;
-    GameObject instancedHoop;
-
-    bool goalInstanced = false;
 
     Vector2 screenCenter;
 
@@ -47,19 +44,12 @@ public class AnchorCreator : MonoBehaviour
             // with the anchor, since an anchor attached to an ARPlane will be updated automatically by the ARAnchorManager as the ARPlane's exact position is refined.
             var anchor = m_AnchorManager.AttachAnchor(hitPlane, hitPose);
             
-            if(!goalInstanced)
-            {
-                instancedHoop = Instantiate(hoop, anchor.transform);                
-                goalInstanced = true;                
+            if(!hoop.activeSelf)
+                hoop.SetActive(true);
 
-                Manager.Instance.StartGame();
-            }
-            else
-            {
-                instancedHoop.transform.position = anchor.transform.position;
-            }
+            hoop.transform.position = anchor.transform.position;
 
-            PrefabLookCamera();
+            ObjLookCamera();
 
             if (anchor == null)
             {
@@ -72,9 +62,9 @@ public class AnchorCreator : MonoBehaviour
             }
         }
     }
-    private void PrefabLookCamera()
+    private void ObjLookCamera()
     {
-        Transform hoopTransform = instancedHoop.transform;
+        Transform hoopTransform = hoop.transform;
 
         hoopTransform.LookAt(Camera.main.transform.position);
 

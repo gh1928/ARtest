@@ -1,11 +1,21 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
+using TMPro;
+using UnityEngine.EventSystems;
 
 public class Manager : MonoBehaviour
 {
     public static Manager Instance;
+
+    string scoreStr = "Score : ";
+    StringBuilder sb = new StringBuilder(16);
+
+    [SerializeField]
+    TextMeshProUGUI textMeshPro;
+
+    private int score = 0;
 
     [SerializeField]
     Ball ballPrefab;
@@ -28,19 +38,24 @@ public class Manager : MonoBehaviour
     [SerializeField]
     GameObject restBallButton;
 
+    [SerializeField]
+    Hoop hoop;
+
     private void Start()
     {
         Instance= this;
-        cam = Camera.main;
+        cam = Camera.main;    
     }
     public void StartGame()
-    {
+    {   
         ball = Instantiate(ballPrefab, ballPivot);
         ball.transform.position = ballPivot.position;
         readyLaunch = true;
     }
     public void Fire(float force)
     {
+        hoop.GoalChecker = 0;
+
         ball.Fire(force);
         fired = true;
 
@@ -60,10 +75,23 @@ public class Manager : MonoBehaviour
         fired = false;
     }
 
+    public void GetScore()
+    {
+        sb.Clear();
+
+        ++score;
+        sb.Append(scoreStr).Append(score);
+
+        textMeshPro.text = sb.ToString();
+    }
+
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
             Application.Quit();
+
+        if (EventSystem.current.IsPointerOverGameObject())
+            return;
 
         if (fired)
             return;
@@ -92,17 +120,5 @@ public class Manager : MonoBehaviour
             
             Fire(force < 0 ? 0 : force * forceAdjust);
         }        
-    }
-
-    public GameObject hoop;
-    public void TestCode()
-    {   
-        hoop.transform.LookAt(cam.transform.position);
-
-        Vector3 eulerAngles = hoop.transform.rotation.eulerAngles;
-        eulerAngles.x = 0;
-        eulerAngles.z = 0;
-
-        hoop.transform.rotation = Quaternion.Euler(eulerAngles);
     }
 }
