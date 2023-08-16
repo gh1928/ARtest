@@ -18,6 +18,73 @@ public class AnchorCreator : MonoBehaviour
     [SerializeField]
     GameObject m_AnchorPrefab;
 
+    [SerializeField]
+    GameObject hoop;
+    GameObject instancedHoop;
+
+    bool goalInstanced = false;
+
+    Vector2 screenCenter;
+
+    private void Start()
+    {
+        screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+    }
+
+    public void InstancePrefabAtMiddle()
+    {
+        if (m_RaycastManager.Raycast(screenCenter, s_Hits, TrackableType.PlaneWithinPolygon))
+        {
+            // Raycast hits are sorted by distance, so the first one
+            // will be the closest hit.
+            var hitPose = s_Hits[0].pose;
+            var hitTrackableId = s_Hits[0].trackableId;
+            var hitPlane = m_PlaneManager.GetPlane(hitTrackableId);
+
+            // This attaches an anchor to the area on the plane corresponding to the raycast hit,
+            // and afterwards instantiates an instance of your chosen prefab at that point.
+            // This prefab instance is parented to the anchor to make sure the position of the prefab is consistent
+            // with the anchor, since an anchor attached to an ARPlane will be updated automatically by the ARAnchorManager as the ARPlane's exact position is refined.
+            var anchor = m_AnchorManager.AttachAnchor(hitPlane, hitPose);
+            
+            if(!goalInstanced)
+            {
+                instancedHoop = Instantiate(hoop, anchor.transform);                
+                goalInstanced = true;                
+
+                Manager.Instance.StartGame();
+            }
+            else
+            {
+                instancedHoop.transform.position = anchor.transform.position;
+            }
+
+            PrefabLookCamera();
+
+            if (anchor == null)
+            {
+                Debug.Log("Error creating anchor.");
+            }
+            else
+            {
+                // Stores the anchor so that it may be removed later.
+                m_AnchorPoints.Add(anchor);
+            }
+        }
+    }
+    private void PrefabLookCamera()
+    {
+        Transform hoopTransform = instancedHoop.transform;
+
+        hoopTransform.LookAt(Camera.main.transform.position);
+
+        Vector3 eulerAngles = hoopTransform.rotation.eulerAngles;
+        eulerAngles.x = 0;
+        eulerAngles.z = 0;
+
+        hoopTransform.rotation = Quaternion.Euler(eulerAngles);
+    }
+
     public GameObject AnchorPrefab
     {
         get => m_AnchorPrefab;
@@ -46,42 +113,42 @@ public class AnchorCreator : MonoBehaviour
         m_AnchorPoints = new List<ARAnchor>();
     }
 
-    void Update()
-    {
-        // If there is no tap, then simply do nothing until the next call to Update().
-        if (Input.touchCount == 0)
-            return;
+    //void Update()
+    //{
+    //    // If there is no tap, then simply do nothing until the next call to Update().
+    //    if (Input.touchCount == 0)
+    //        return;
 
-        var touch = Input.GetTouch(0);
-        if (touch.phase != TouchPhase.Began)
-            return;
+    //    var touch = Input.GetTouch(0);
+    //    if (touch.phase != TouchPhase.Began)
+    //        return;
 
-        if (m_RaycastManager.Raycast(touch.position, s_Hits, TrackableType.PlaneWithinPolygon))
-        {
-            // Raycast hits are sorted by distance, so the first one
-            // will be the closest hit.
-            var hitPose = s_Hits[0].pose;
-            var hitTrackableId = s_Hits[0].trackableId;
-            var hitPlane = m_PlaneManager.GetPlane(hitTrackableId);
+    //    if (m_RaycastManager.Raycast(touch.position, s_Hits, TrackableType.PlaneWithinPolygon))
+    //    {
+    //        // Raycast hits are sorted by distance, so the first one
+    //        // will be the closest hit.
+    //        var hitPose = s_Hits[0].pose;
+    //        var hitTrackableId = s_Hits[0].trackableId;
+    //        var hitPlane = m_PlaneManager.GetPlane(hitTrackableId);
 
-            // This attaches an anchor to the area on the plane corresponding to the raycast hit,
-            // and afterwards instantiates an instance of your chosen prefab at that point.
-            // This prefab instance is parented to the anchor to make sure the position of the prefab is consistent
-            // with the anchor, since an anchor attached to an ARPlane will be updated automatically by the ARAnchorManager as the ARPlane's exact position is refined.
-            var anchor = m_AnchorManager.AttachAnchor(hitPlane, hitPose);
-            Instantiate(m_AnchorPrefab, anchor.transform);
+    //        // This attaches an anchor to the area on the plane corresponding to the raycast hit,
+    //        // and afterwards instantiates an instance of your chosen prefab at that point.
+    //        // This prefab instance is parented to the anchor to make sure the position of the prefab is consistent
+    //        // with the anchor, since an anchor attached to an ARPlane will be updated automatically by the ARAnchorManager as the ARPlane's exact position is refined.
+    //        var anchor = m_AnchorManager.AttachAnchor(hitPlane, hitPose);
+    //        Instantiate(m_AnchorPrefab, anchor.transform);
 
-            if (anchor == null)
-            {
-                Debug.Log("Error creating anchor.");
-            }
-            else
-            {
-                // Stores the anchor so that it may be removed later.
-                m_AnchorPoints.Add(anchor);
-            }
-        }
-    }
+    //        if (anchor == null)
+    //        {
+    //            Debug.Log("Error creating anchor.");
+    //        }
+    //        else
+    //        {
+    //            // Stores the anchor so that it may be removed later.
+    //            m_AnchorPoints.Add(anchor);
+    //        }
+    //    }
+    //}
 
     static List<ARRaycastHit> s_Hits = new List<ARRaycastHit>();
 
