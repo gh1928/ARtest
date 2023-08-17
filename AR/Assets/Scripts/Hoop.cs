@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class Hoop : MonoBehaviour
 {
-    public int GoalChecker { get; set; } = 0;
-
     public float changeInterval = 0.5f;
 
     WaitForSeconds intervalWait;
@@ -16,25 +14,38 @@ public class Hoop : MonoBehaviour
     [SerializeField]
     GameObject spotLight;
 
+    [SerializeField]
+    GoalChecker topChecker;
+
+    [SerializeField]
+    GoalChecker bottomChecker;
+
+    private bool topGoaledin = false;
+
     private void Awake()
     {
         intervalWait = new WaitForSeconds(changeInterval);
+
+        topChecker.TriggerEvent.AddListener(()=>topGoaledin = true);
+        bottomChecker.TriggerEvent.AddListener(CheckGoal);
     }
 
-    private void OnTriggerEnter(Collider other)
+    public void ResetGoalCheck()
     {
-        GoalChecker++;
-
-        if (GoalChecker == 2)
-        {
-            StartCoroutine(LineBlinkCoroutine());
-
-            GoalChecker = 0;
-            Manager.Instance.GetScore();
-        }
+        topGoaledin = false;
     }
 
-    IEnumerator LineBlinkCoroutine()
+    private void CheckGoal()
+    {
+        if (!topGoaledin)
+            return;
+
+        StartCoroutine(GetScoreBlinkEffectCoroutine());
+
+        Manager.Instance.GetScore();
+    }
+
+    IEnumerator GetScoreBlinkEffectCoroutine()
     {
         for(int i = 0; i < 3; i++)
         {

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using TMPro;
-using UnityEngine.EventSystems;
 
 public class Manager : MonoBehaviour
 {
@@ -30,10 +29,9 @@ public class Manager : MonoBehaviour
     float forceAdjust = 0.001f;
 
     Vector3 touchStartPos;
+    float touchStartTime;
 
     bool fired = false;
-
-    bool readyLaunch = false;
 
     [SerializeField]
     GameObject restBallButton;
@@ -41,6 +39,14 @@ public class Manager : MonoBehaviour
     [SerializeField]
     Hoop hoop;
 
+    [SerializeField]
+    BallContolPanal ballContolPanal;
+
+    private void Awake()
+    {
+        ballContolPanal.PointDownAction += ReadyFire;
+        ballContolPanal.PointUpAction += TryFire;
+    }
     private void Start()
     {
         Instance= this;
@@ -50,12 +56,9 @@ public class Manager : MonoBehaviour
     {   
         ball = Instantiate(ballPrefab, ballPivot);
         ball.transform.position = ballPivot.position;
-        readyLaunch = true;
     }
     public void Fire(float force)
     {
-        hoop.GoalChecker = 0;
-
         ball.Fire(force);
         fired = true;
 
@@ -64,13 +67,15 @@ public class Manager : MonoBehaviour
 
     public void ResetBall()
     {
+        hoop.ResetGoalCheck();
+
         ball.RestBall(ballPivot);
         restBallButton.SetActive(false);
 
-        Invoke(nameof(ReadyFire), 0.5f);
+        Invoke(nameof(FireDelay), 0.5f);
     }
 
-    private void ReadyFire()
+    private void FireDelay()
     {
         fired = false;
     }
@@ -85,40 +90,27 @@ public class Manager : MonoBehaviour
         textMeshPro.text = sb.ToString();
     }
 
+    public void ReadyFire(Vector2 pos)
+    {
+        touchStartPos = pos;
+        touchStartTime = Time.time;
+    }
+
+    public void TryFire(Vector2 pos)
+    {
+        if (fired)
+            return;
+        
+        float touchTime = Time.time - touchStartTime;
+
+        var force = (pos.y - touchStartPos.y) / touchTime;   
+
+        Fire(force < 0 ? 0 : force * forceAdjust);
+    }
+
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
-            Application.Quit();
-
-        if (EventSystem.current.IsPointerOverGameObject())
-            return;
-
-        if (fired)
-            return;
-
-        if (Input.touchCount == 0)
-            return;
-
-        var touch = Input.GetTouch(0);
-
-        if (touch.phase == TouchPhase.Began)
-        {
-            touchStartPos = touch.position;
-        }
-
-        if(touch.phase == TouchPhase.Moved)
-        {
-            readyLaunch = false;
-        }
-
-        if (readyLaunch)
-            return;
-
-        if (touch.phase == TouchPhase.Ended)
-        {
-            var force = touch.position.y - touchStartPos.y;
-            
-            Fire(force < 0 ? 0 : force * forceAdjust);
-        }        
+            Application.Quit();   
     }
 }
