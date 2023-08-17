@@ -26,7 +26,8 @@ public class Manager : MonoBehaviour
     Camera cam;
 
     [SerializeField]
-    float forceAdjust = 0.001f;
+    float forceAdjust = 0.0003f;
+    float originForceAdjust;
 
     Vector3 touchStartPos;
     float touchStartTime;
@@ -34,7 +35,8 @@ public class Manager : MonoBehaviour
     bool fired = false;
 
     [SerializeField]
-    GameObject restBallButton;
+    GameObject resetBallButton;
+    CanvasGroup resetBallButtonCanvasGroup;
 
     [SerializeField]
     Hoop hoop;
@@ -42,15 +44,21 @@ public class Manager : MonoBehaviour
     [SerializeField]
     BallContolPanal ballContolPanal;
 
+    [SerializeField]
+    GameObject optionPanel;
+
     private void Awake()
     {
         ballContolPanal.PointDownAction += ReadyFire;
         ballContolPanal.PointUpAction += TryFire;
+
+        resetBallButtonCanvasGroup = resetBallButton.GetComponent<CanvasGroup>();
     }
     private void Start()
     {
         Instance= this;
-        cam = Camera.main;    
+        cam = Camera.main;
+        originForceAdjust = forceAdjust;
     }
     public void StartGame()
     {   
@@ -62,7 +70,7 @@ public class Manager : MonoBehaviour
         ball.Fire(force);
         fired = true;
 
-        restBallButton.SetActive(true);
+        resetBallButton.SetActive(true);
     }
 
     public void ResetBall()
@@ -70,9 +78,9 @@ public class Manager : MonoBehaviour
         hoop.ResetGoalCheck();
 
         ball.RestBall(ballPivot);
-        restBallButton.SetActive(false);
+        resetBallButton.SetActive(false);
 
-        Invoke(nameof(FireDelay), 0.5f);
+        Invoke(nameof(FireDelay), 0.2f);
     }
 
     private void FireDelay()
@@ -107,10 +115,33 @@ public class Manager : MonoBehaviour
 
         Fire(force < 0 ? 0 : force * forceAdjust);
     }
-
-    void Update()
+    public void QuitGame()
     {
-        if (Input.GetKeyDown(KeyCode.Escape))
-            Application.Quit();   
+        Application.Quit();
     }
+    private void Update()
+    {
+        if(Input.GetKeyDown(KeyCode.Escape))
+        {
+            OnOffOptionPanel();
+        }
+    }
+
+    public void OnOffOptionPanel()
+    {
+        optionPanel.SetActive(!optionPanel.activeSelf);
+
+        resetBallButtonCanvasGroup.alpha = optionPanel.activeSelf ? 0 : 1;
+    }
+
+    public void SensiSliderListener(float value)
+    {
+        forceAdjust = originForceAdjust * value;
+    }
+
+    public void GoalScaleListner(float value)
+    {
+        hoop.transform.localScale = Vector3.one * value;
+    }
+
 }
