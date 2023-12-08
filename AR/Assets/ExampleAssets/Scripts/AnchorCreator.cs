@@ -47,7 +47,7 @@ public class AnchorCreator : MonoBehaviour
             if(!hoop.activeSelf)
             {
                 hoop.SetActive(true);
-                Manager.Instance.StartGame();
+                //Manager.Instance.StartGame();
             }
 
             hoop.transform.position = anchor.transform.position;
