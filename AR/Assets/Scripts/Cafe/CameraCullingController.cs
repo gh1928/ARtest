@@ -7,6 +7,8 @@ public class CameraCullingController : MonoBehaviour
     public Transform target;
     private bool isTargetIn = false;
 
+    public GameObject canvas;
+    public GameObject renderCam;
     private void Update()
     {
         if (isTargetIn)
@@ -18,10 +20,17 @@ public class CameraCullingController : MonoBehaviour
 
         if (dotProduct > 0)
         {
+            OffRenderTex();
+
             target.GetComponent<Camera>().cullingMask = (1 << LayerMask.NameToLayer("Cafe"));
             isTargetIn = true;
         }
     }
 
+    private void OffRenderTex()
+    {
+        canvas.SetActive(false);
+        renderCam.SetActive(false);
+    }
 
 }
