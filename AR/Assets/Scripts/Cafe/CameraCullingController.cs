@@ -9,6 +9,7 @@ public class CameraCullingController : MonoBehaviour
 
     public GameObject canvas;
     public GameObject renderCam;
+    public GameObject sounds;
     private void Update()
     {
         if (isTargetIn)
@@ -21,6 +22,7 @@ public class CameraCullingController : MonoBehaviour
         if (dotProduct > 0)
         {
             OffRenderTex();
+            sounds.SetActive(true);
 
             target.GetComponent<Camera>().cullingMask = (1 << LayerMask.NameToLayer("Cafe"));
             isTargetIn = true;
@@ -32,5 +34,4 @@ public class CameraCullingController : MonoBehaviour
         canvas.SetActive(false);
         renderCam.SetActive(false);
     }
-
 }
